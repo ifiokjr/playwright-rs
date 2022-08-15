@@ -1,6 +1,7 @@
 pub(crate) mod de;
 pub(crate) mod ser;
 
+use std::fmt::Debug;
 use crate::imp::core::Error;
 use serde::{Deserialize, Deserializer};
 use serde_json::{map::Map, value::Value};
@@ -14,7 +15,18 @@ pub(crate) struct Req<'a, 'b> {
     #[serde(default)]
     pub(crate) method: &'b S<Method>,
     #[serde(default)]
-    pub(crate) params: Map<String, Value>
+    pub(crate) params: Map<String, Value>,
+    pub(crate) metadata: crate::protocol::generated::Metadata
+}
+
+impl Default for crate::protocol::generated::Metadata {
+    fn default() -> Self {
+        Self {
+            api_name: None,
+            stack: None,
+            internal: None
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -63,6 +75,7 @@ impl<'de> Deserialize<'de> for ResResult {
 pub(crate) struct ResInitial {
     pub(crate) guid: Str<Guid>,
     pub(crate) method: Str<Method>,
+    #[serde(default)]
     pub(crate) params: Map<String, Value>
 }
 
@@ -152,6 +165,7 @@ pub(crate) fn as_only_guid(v: &Value) -> Option<&S<Guid>> {
     S::validate(s).ok()
 }
 
+
 pub(crate) fn only_guid(v: &Value) -> Result<&S<Guid>, Error> {
     as_only_guid(v).ok_or_else(|| Error::GuidNotFound(v.clone()))
 }
@@ -171,6 +185,19 @@ pub(crate) fn maybe_only_str(v: &Value) -> Result<Option<&str>, Error> {
     };
     Ok(Some(s))
 }
+
+pub(crate) fn _guid(v: &Value) -> Option<&S<Guid>> {
+    let m: &Map<String, Value> = v.as_object()?;
+    let v: &Value = m.get("guid")?;
+    let s: &str = v.as_str()?;
+    S::validate(s).ok()
+}
+
+/// If {"guid": str} then str
+pub(crate) fn guid_from_params(v: &Value) -> Result<&S<Guid>, Error> {
+    _guid(v).ok_or_else(|| Error::GuidNotFound(v.clone()))
+}
+
 
 #[derive(Debug, Serialize)]
 pub(crate) struct Argument {
