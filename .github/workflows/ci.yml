@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,33 +14,39 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
+      - name: checkout repository
+        uses: actions/checkout@v3
 
-      - name: Lint
-        run: cargo clippy --all-targets
+      - name: setup development environment
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: cache rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ runner.os }}
+
+      - name: lint
+        run: lint:all
+        shell: bash
+
       - name: Prepare driver and browsers
         run: cargo test hello
+
       - name: Test
         run: cargo test --all-targets -- --nocapture
 
-      - name: Coverage
+      - name: coverage
         if: success() && matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
-        run: |
-          cargo install cargo-tarpaulin
-          cargo tarpaulin --out Xml --verbose --exclude-files scripts/ tests/ src/build.rs src/main.rs src/generated.rs
+        run: cargo tarpaulin --out Xml --verbose --exclude-files scripts/ tests/ src/build.rs src/main.rs src/generated.rs
+
       - name: Upload to codecov.io
         if: success() && matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
         uses: codecov/codecov-action@v1.0.2
         with:
           file: cobertura.xml
-          token: ${{secrets.CODECOV}}

@@ -1,3 +1,20 @@
-target
 driver
 tarpaulin-report.html
+
+/target
+/.helix
+/result
+/.direnv
+# Devenv
+.devenv*
+devenv.local.nix
+
+**/dist/**
+
+# insta snapshots
+*.pending-snap
+*.snap.new
+
+# setup
+/.helix
+/.vscode
