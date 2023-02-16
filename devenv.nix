@@ -28,7 +28,7 @@
   # Scripts
 
   scripts."build:all".exec = ''
-    cargo build
+    cargo build --release
   '';
   scripts."fix:all".exec = ''
     fix:format
@@ -48,13 +48,21 @@
     dprint check
   '';
   scripts."lint:clippy".exec = ''
-    cargo clippy
+    cargo clippy --all-targets
+    cargo clippy --no-default-features --features chrono --features rt-actix --all-targets
+    cargo clippy --no-default-features --features chrono --features rt-async-std --all-targets
   '';
   scripts."test:snapshot".exec = ''
     cargo insta accept
   '';
+  scripts."test:coverage".exec = ''
+    cargo tarpaulin --out html --exclude-files scripts/ tests/ src/build.rs src/main.rs src/generated.rs
+  '';
   scripts."test:all".exec = ''
-    cargo test
+    cargo test --doc
+    cargo nextest run --all-targets
+    cargo nextest run --no-default-features --features chrono --features rt-actix --all-targets
+    cargo nextest run --no-default-features --features chrono --features rt-async-std --all-targets
   '';
   scripts."setup:helix".exec = ''
     rm -rf .helix

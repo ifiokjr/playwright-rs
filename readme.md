@@ -6,52 +6,62 @@
 [![CI](https://github.com/octaltree/playwright-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/octaltree/playwright-rust/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/octaltree/playwright-rust/branch/master/graph/badge.svg)](https://codecov.io/gh/octaltree/playwright-rust)
 
-Playwright is a rust library to automate [Chromium](https://www.chromium.org/Home), [Firefox](https://www.mozilla.org/en-US/firefox/new/) and [WebKit](https://webkit.org/) built on top of Node.js library.
+Playwright is a rust library to automate [Chromium](https://www.chromium.org/Home),
+[Firefox](https://www.mozilla.org/en-US/firefox/new/) and [WebKit](https://webkit.org/) built on top
+of Node.js library.
 
 ## Installation
+
 ```
 [dependencies]
-playwright = "0.0.20"
+playwright_core = "0.0.20"
 ```
 
 ## Usage
+
 ```rust
-use playwright::Playwright;
+use playwright_core::Playwright;
 
 #[tokio::main]
 async fn main() -> Result<(), playwright::Error> {
-    let playwright = Playwright::initialize().await?;
-    playwright.prepare()?; // Install browsers
-    let chromium = playwright.chromium();
-    let browser = chromium.launcher().headless(true).launch().await?;
-    let context = browser.context_builder().build().await?;
-    let page = context.new_page().await?;
-    page.goto_builder("https://example.com/").goto().await?;
+  let playwright = Playwright::initialize().await?;
+  playwright.prepare()?; // Install browsers
+  let chromium = playwright.chromium();
+  let browser = chromium.launcher().headless(true).launch().await?;
+  let context = browser.context_builder().build().await?;
+  let page = context.new_page().await?;
+  page.goto_builder("https://example.com/").goto().await?;
 
-    // Exec in browser and Deserialize with serde
-    let s: String = page.eval("() => location.href").await?;
-    assert_eq!(s, "https://example.com/");
-    page.click_builder("a").click().await?;
-    Ok(())
+  // Exec in browser and Deserialize with serde
+  let s: String = page.eval("() => location.href").await?;
+  assert_eq!(s, "https://example.com/");
+  page.click_builder("a").click().await?;
+  Ok(())
 }
 ```
 
 ## Async runtimes
-* [tokio](https://crates.io/crates/tokio)
-* [actix-rt](https://crates.io/crates/actix-rt)
-* [async-std](https://crates.io/crates/async-std)
 
-These runtimes have passed tests. You can disable tokio, the default feature, and then choose another.
+- [tokio](https://crates.io/crates/tokio)
+- [actix-rt](https://crates.io/crates/actix-rt)
+- [async-std](https://crates.io/crates/async-std)
+
+These runtimes have passed tests. You can disable tokio, the default feature, and then choose
+another.
 
 ## Incompatibility
-Functions do not have default arguments in rust.
-Functions with two or more optional arguments are now passed with the builder pattern.
+
+Functions do not have default arguments in rust. Functions with two or more optional arguments are
+now passed with the builder pattern.
 
 ## Playwright Driver
-Playwright is designed as a server-client. All playwright client dependent on the driver: zip of core js library and Node.js.
-Application uses this library will be bundled the driver into rust binary at build time. There is an overhead of unzipping on the first run.
+
+Playwright is designed as a server-client. All playwright client dependent on the driver: zip of
+core js library and Node.js. Application uses this library will be bundled the driver into rust
+binary at build time. There is an overhead of unzipping on the first run.
 
 ### NOTICE
+
 ```
 playwright-rust redistributes Playwright licensed under the Apache 2.0.
 Playwright has NOTICE:
@@ -65,15 +75,17 @@ available under the Apache 2.0 license (https://github.com/puppeteer/puppeteer/b
 ```
 
 ## Browser automation in rust
+
 - [atroche/rust-headless-chrome](https://github.com/atroche/rust-headless-chrome)
 - [saresend/selenium-rs](https://github.com/saresend/selenium-rs)
 - [https://crates.io/crates/webdriver](https://crates.io/crates/webdriver)
 - [mattsse/chromiumoxide](https://github.com/mattsse/chromiumoxide)
 
 ## Other languages
+
 - [microsoft/playwright](https://github.com/microsoft/playwright)
-    * [Documentation](https://playwright.dev/docs/intro/)
-    * [API Reference](https://playwright.dev/docs/api/class-playwright/)
+  - [Documentation](https://playwright.dev/docs/intro/)
+  - [API Reference](https://playwright.dev/docs/api/class-playwright/)
 - [microsoft/playwright-python](https://github.com/microsoft/playwright-python)
 - [microsoft/playwright-sharp](https://github.com/microsoft/playwright-sharp)
 - [microsoft/playwright-java](https://github.com/microsoft/playwright-java)
@@ -83,3 +95,26 @@ available under the Apache 2.0 license (https://github.com/puppeteer/puppeteer/b
 - [luka-dev/playwright-php](https://github.com/luka-dev/playwright-php)
 - [naqvis/playwright-cr](https://github.com/naqvis/playwright-cr)
 - [geometerio/playwright-elixir](https://github.com/geometerio/playwright-elixir)
+
+## Contributing
+
+[`devenv`](https://devenv.sh/) is used to provide a reproducible development environment for this
+project. Follow the [getting started instructions](https://devenv.sh/getting-started/).
+
+To automatically load the environment you should
+[install direnv](https://devenv.sh/automatic-shell-activation/) and then load the `direnv`.
+
+```bash
+# The security mechanism didn't allow to load the `.envrc`.
+# Since we trust it, let's allow it execution.
+direnv allow .
+```
+
+At this point you should see the `nix` commands available in your terminal.
+
+To setup recommended configuration for your favourite editor run the following commands.
+
+```bash
+setup:vscode # Setup vscode
+setup:helix  # Setup helix configuration
+```

@@ -1,0 +1,51 @@
+[package]
+name = "playwright_core"
+version = { workspace = true }
+authors = ["Ifiok Jr. <ifiokotung@gmail.com>", "octaltree <octaltree@gmail.com>"]
+categories = { workspace = true }
+documentation = "https://docs.rs/playwright_core"
+edition = { workspace = true }
+homepage = { workspace = true }
+keywords = ["testing", "headless", "web", "browser", "automation"]
+license = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+description = "Playwright port to Rust"
+
+[build-dependencies]
+reqwest = { workspace = true, features = ["blocking"] }
+
+[dependencies]
+actix-rt = { workspace = true, optional = true }
+async-std = { workspace = true, features = ["attributes"], optional = true }
+base64 = { workspace = true }
+chrono = { workspace = true, optional = true, features = ["serde"] }
+dirs = { workspace = true }
+futures = { workspace = true }
+itertools = { workspace = true }
+log = { workspace = true }
+paste = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+serde_with = { workspace = true, default-features = false, features = ["macros"] }
+strong = { workspace = true, features = ["serde", "shorthand"] }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["sync", "rt-multi-thread", "macros"] }
+tokio-stream = { workspace = true, features = ["sync"] }
+zip = { workspace = true }
+
+[dev-dependencies]
+env_logger = { workspace = true }
+tempdir = { workspace = true }
+tide = { workspace = true }
+warp = { workspace = true }
+
+[features]
+default = ["chrono", "rt-tokio"]
+rt-tokio = []
+rt-actix = ["actix-rt"]
+rt-async-std = ["async-std"]
+only-for-docs-rs = []
+
+[package.metadata.docs.rs]
+features = ["only-for-docs-rs"]
