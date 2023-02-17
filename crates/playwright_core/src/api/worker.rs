@@ -1,15 +1,12 @@
-use crate::{
-    api::JsHandle,
-    imp::{
-        core::*,
-        prelude::*,
-        worker::{Evt, Worker as Impl}
-    }
-};
+use crate::api::JsHandle;
+use crate::imp::core::*;
+use crate::imp::prelude::*;
+use crate::imp::worker::Evt;
+use crate::imp::worker::Worker as Impl;
 
 /// The Worker class represents a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API). `worker`
-/// event is emitted on the page object to signal a worker creation. `close` event is emitted on the worker object when the
-/// worker is gone.
+/// event is emitted on the page object to signal a worker creation. `close`
+/// event is emitted on the worker object when the worker is gone.
 ///
 /// ```js
 /// page.on('worker', worker => {
@@ -23,68 +20,72 @@ use crate::{
 /// ```
 #[derive(Clone)]
 pub struct Worker {
-    inner: Weak<Impl>
+  inner: Weak<Impl>,
 }
 
 impl PartialEq for Worker {
-    fn eq(&self, other: &Self) -> bool {
-        let a = self.inner.upgrade();
-        let b = other.inner.upgrade();
-        a.and_then(|a| b.map(|b| (a, b)))
-            .map(|(a, b)| a.guid() == b.guid())
-            .unwrap_or_default()
-    }
+  fn eq(&self, other: &Self) -> bool {
+    let a = self.inner.upgrade();
+    let b = other.inner.upgrade();
+    a.and_then(|a| b.map(|b| (a, b)))
+      .map(|(a, b)| a.guid() == b.guid())
+      .unwrap_or_default()
+  }
 }
 
 impl Worker {
-    pub(crate) fn new(inner: Weak<Impl>) -> Self { Self { inner } }
+  subscribe_event! {}
 
-    pub fn url(&self) -> Result<String, Error> { Ok(upgrade(&self.inner)?.url().to_owned()) }
+  pub(crate) fn new(inner: Weak<Impl>) -> Self {
+    Self { inner }
+  }
 
-    pub async fn eval_handle(&self, expression: &str) -> ArcResult<JsHandle> {
-        upgrade(&self.inner)?
-            .eval_handle(expression)
-            .await
-            .map(JsHandle::new)
-    }
+  pub fn url(&self) -> Result<String, Error> {
+    Ok(upgrade(&self.inner)?.url().to_owned())
+  }
 
-    pub async fn evaluate_handle<T>(&self, expression: &str, arg: Option<T>) -> ArcResult<JsHandle>
-    where
-        T: Serialize
-    {
-        upgrade(&self.inner)?
-            .evaluate_handle(expression, arg)
-            .await
-            .map(JsHandle::new)
-    }
+  pub async fn eval_handle(&self, expression: &str) -> ArcResult<JsHandle> {
+    upgrade(&self.inner)?
+      .eval_handle(expression)
+      .await
+      .map(JsHandle::new)
+  }
 
-    pub async fn eval<U>(&self, expression: &str) -> ArcResult<U>
-    where
-        U: DeserializeOwned
-    {
-        upgrade(&self.inner)?.eval(expression).await
-    }
+  pub async fn evaluate_handle<T>(&self, expression: &str, arg: Option<T>) -> ArcResult<JsHandle>
+  where
+    T: Serialize,
+  {
+    upgrade(&self.inner)?
+      .evaluate_handle(expression, arg)
+      .await
+      .map(JsHandle::new)
+  }
 
-    pub async fn evaluate<T, U>(&self, expression: &str, arg: Option<T>) -> ArcResult<U>
-    where
-        T: Serialize,
-        U: DeserializeOwned
-    {
-        upgrade(&self.inner)?.evaluate(expression, arg).await
-    }
+  pub async fn eval<U>(&self, expression: &str) -> ArcResult<U>
+  where
+    U: DeserializeOwned,
+  {
+    upgrade(&self.inner)?.eval(expression).await
+  }
 
-    subscribe_event! {}
+  pub async fn evaluate<T, U>(&self, expression: &str, arg: Option<T>) -> ArcResult<U>
+  where
+    T: Serialize,
+    U: DeserializeOwned,
+  {
+    upgrade(&self.inner)?.evaluate(expression, arg).await
+  }
 }
 
 #[derive(Debug)]
 pub enum Event {
-    Close
+  Close,
 }
 
 impl From<Evt> for Event {
-    fn from(e: Evt) -> Self {
-        match e {
-            Evt::Close => Self::Close
-        }
+  fn from(e: Evt) -> Self {
+    match e {
+      Evt::Close => Self::Close,
     }
+  }
 }

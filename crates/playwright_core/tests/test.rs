@@ -19,9 +19,9 @@ use tokio::task::spawn;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Which {
-    Webkit,
-    Firefox,
-    Chromium
+  Webkit,
+  Firefox,
+  Chromium,
 }
 
 playwright::runtime_test!(chromium_page, page(Which::Chromium).await);
@@ -37,120 +37,126 @@ playwright::runtime_test!(firefox_devices, devices(Which::Chromium).await);
 // playwright::runtime_test!(webkit_devices, devices(Which::Webkit).await);
 
 playwright::runtime_test!(
-    connect_over_cdp,
-    connect::connect_over_cdp(Which::Chromium).await
+  connect_over_cdp,
+  connect::connect_over_cdp(Which::Chromium).await
 );
 
 async fn page(which: Which) {
-    std::fs::create_dir_all(temp_dir()).unwrap();
-    let port = free_local_port().unwrap();
-    start_test_server(port).await;
-    let playwright = playwright_with_driver().await;
-    install_browser(&playwright, which);
-    let browser_type = browser_type::all(&playwright, which).await;
-    let browser = browser::all(&browser_type, which).await;
-    let persistent = browser_context::persistent(&browser_type, port, which).await;
-    let browser_context = browser_context::all(&browser, &persistent, port, which).await;
-    page::all(&browser_context, port, which).await;
+  std::fs::create_dir_all(temp_dir()).unwrap();
+  let port = free_local_port().unwrap();
+  start_test_server(port).await;
+  let playwright = playwright_with_driver().await;
+  install_browser(&playwright, which);
+  let browser_type = browser_type::all(&playwright, which).await;
+  let browser = browser::all(&browser_type, which).await;
+  let persistent = browser_context::persistent(&browser_type, port, which).await;
+  let browser_context = browser_context::all(&browser, &persistent, port, which).await;
+  page::all(&browser_context, port, which).await;
 }
 
 async fn selectors(which: Which) {
-    let playwright = playwright_with_driver().await;
-    install_browser(&playwright, which);
-    selectors::all(&playwright, which).await;
+  let playwright = playwright_with_driver().await;
+  install_browser(&playwright, which);
+  selectors::all(&playwright, which).await;
 }
 
 async fn devices(which: Which) {
-    let port = free_local_port().unwrap();
-    start_test_server(port).await;
-    let playwright = playwright_with_driver().await;
-    install_browser(&playwright, which);
-    devices::all(&playwright, port, which).await;
+  let port = free_local_port().unwrap();
+  start_test_server(port).await;
+  let playwright = playwright_with_driver().await;
+  install_browser(&playwright, which);
+  devices::all(&playwright, port, which).await;
 }
 
 fn install_browser(p: &Playwright, which: Which) {
-    match which {
-        Which::Webkit => p.install_webkit(),
-        Which::Firefox => p.install_firefox(),
-        Which::Chromium => p.install_chromium()
-    }
-    .unwrap();
+  match which {
+    Which::Webkit => p.install_webkit(),
+    Which::Firefox => p.install_firefox(),
+    Which::Chromium => p.install_chromium(),
+  }
+  .unwrap();
 }
 
 async fn playwright_with_driver() -> Playwright {
-    use playwright_core::Driver;
-    let driver = Driver::new(Driver::default_dest());
-    let mut playwright = Playwright::with_driver(driver).await.unwrap();
-    let _ = playwright.driver();
-    playwright
+  use playwright_core::Driver;
+  let driver = Driver::new(Driver::default_dest());
+  let mut playwright = Playwright::with_driver(driver).await.unwrap();
+  let _ = playwright.driver();
+  playwright
 }
 
 #[cfg(any(feature = "rt-tokio", feature = "rt-actix"))]
 async fn start_test_server(port: u16) {
-    use warp::{
-        http::header::{HeaderMap, HeaderValue},
-        Filter
-    };
-    let headers = {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            "Content-Type",
-            HeaderValue::from_static("application/octet-stream")
-        );
-        headers.insert(
-            "Content-Disposition",
-            HeaderValue::from_static("attachment")
-        );
-        headers
-    };
-    let r#static = warp::path("static").and(warp::fs::dir("tests/server"));
-    let download = warp::path("download")
-        .and(warp::fs::dir("tests/server"))
-        .with(warp::reply::with::headers(headers));
-    let route = r#static.or(download);
-    spawn(async move {
-        warp::serve(route).run(([127, 0, 0, 1], port)).await;
-    });
+  use warp::http::header::HeaderMap;
+  use warp::http::header::HeaderValue;
+  use warp::Filter;
+  let headers = {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+      "Content-Type",
+      HeaderValue::from_static("application/octet-stream"),
+    );
+    headers.insert(
+      "Content-Disposition",
+      HeaderValue::from_static("attachment"),
+    );
+    headers
+  };
+  let r#static = warp::path("static").and(warp::fs::dir("tests/server"));
+  let download = warp::path("download")
+    .and(warp::fs::dir("tests/server"))
+    .with(warp::reply::with::headers(headers));
+  let route = r#static.or(download);
+  spawn(async move {
+    warp::serve(route).run(([127, 0, 0, 1], port)).await;
+  });
 }
 
 #[cfg(feature = "rt-async-std")]
 async fn start_test_server(port: u16) {
-    use tide::Server;
-    let mut app = Server::new();
-    app.at("/static").serve_dir("tests/server/").unwrap();
-    app.at("/download")
-        .with(tide::utils::After(|mut res: tide::Response| async move {
-            res.insert_header("Content-Type", "application/octet-stream");
-            res.insert_header("Content-Disposition", "attachment");
-            Ok(res)
-        }))
-        .serve_dir("tests/server/")
-        .unwrap();
-    spawn(async move {
-        app.listen(format!("127.0.0.1:{}", port)).await.unwrap();
-    });
+  use tide::Server;
+  let mut app = Server::new();
+  app.at("/static").serve_dir("tests/server/").unwrap();
+  app
+    .at("/download")
+    .with(tide::utils::After(|mut res: tide::Response| {
+      async move {
+        res.insert_header("Content-Type", "application/octet-stream");
+        res.insert_header("Content-Disposition", "attachment");
+        Ok(res)
+      }
+    }))
+    .serve_dir("tests/server/")
+    .unwrap();
+  spawn(async move {
+    app.listen(format!("127.0.0.1:{}", port)).await.unwrap();
+  });
 }
 
 // XXX: non thread safe
 fn free_local_port() -> Option<u16> {
-    let socket = std::net::SocketAddrV4::new(std::net::Ipv4Addr::LOCALHOST, 0);
-    std::net::TcpListener::bind(socket)
-        .and_then(|listener| listener.local_addr())
-        .map(|addr| addr.port())
-        .ok()
+  let socket = std::net::SocketAddrV4::new(std::net::Ipv4Addr::LOCALHOST, 0);
+  std::net::TcpListener::bind(socket)
+    .and_then(|listener| listener.local_addr())
+    .map(|addr| addr.port())
+    .ok()
 }
 
 fn url_static(port: u16, path: &str) -> String {
-    format!("http://localhost:{}/static{}", port, path)
+  format!("http://localhost:{}/static{}", port, path)
 }
 
 fn url_download(port: u16, path: &str) -> String {
-    format!("http://localhost:{}/download{}", port, path)
+  format!("http://localhost:{}/download{}", port, path)
 }
 
-fn origin(port: u16) -> String { format!("http://localhost:{}", port) }
+fn origin(port: u16) -> String {
+  format!("http://localhost:{}", port)
+}
 
-fn temp_dir() -> PathBuf { std::env::temp_dir().join("test-playwright-rust") }
+fn temp_dir() -> PathBuf {
+  std::env::temp_dir().join("test-playwright-rust")
+}
 
 //    let h = page.eval_handle("() => location.href").await.unwrap();
 //    let s: String = page

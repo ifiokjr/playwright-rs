@@ -29,22 +29,22 @@ macro_rules! setter {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! subscribe_event {
-    () => {
-        // TODO: FusedStream + Sink
-        pub fn subscribe_event(
-            &self
-        ) -> Result<
-            impl futures::stream::Stream<
-                Item = Result<Event, tokio_stream::wrappers::errors::BroadcastStreamRecvError>
-            >,
-            Error
-        > {
-            use futures::stream::StreamExt;
-            use tokio_stream::wrappers::BroadcastStream;
-            let stream = BroadcastStream::new(upgrade(&self.inner)?.subscribe_event());
-            Ok(stream.map(|e| e.map(Event::from)))
-        }
-    };
+  () => {
+    // TODO: FusedStream + Sink
+    pub fn subscribe_event(
+      &self,
+    ) -> Result<
+      impl futures::stream::Stream<
+        Item = Result<Event, tokio_stream::wrappers::errors::BroadcastStreamRecvError>,
+      >,
+      Error,
+    > {
+      use futures::stream::StreamExt;
+      use tokio_stream::wrappers::BroadcastStream;
+      let stream = BroadcastStream::new(upgrade(&self.inner)?.subscribe_event());
+      Ok(stream.map(|e| e.map(Event::from)))
+    }
+  };
 }
 
 pub mod input_device;
@@ -70,9 +70,6 @@ pub mod video;
 pub mod websocket;
 pub mod worker;
 
-pub use crate::imp::{core::DateTime, utils::*};
-
-pub use self::playwright::Playwright;
 pub use accessibility::Accessibility;
 pub use browser::Browser;
 pub use browser_context::BrowserContext;
@@ -83,7 +80,9 @@ pub use download::Download;
 pub use element_handle::ElementHandle;
 pub use file_chooser::FileChooser;
 pub use frame::Frame;
-pub use input_device::{Keyboard, Mouse, TouchScreen};
+pub use input_device::Keyboard;
+pub use input_device::Mouse;
+pub use input_device::TouchScreen;
 pub use js_handle::JsHandle;
 pub use page::Page;
 pub use request::Request;
@@ -93,6 +92,10 @@ pub use selectors::Selectors;
 pub use video::Video;
 pub use websocket::WebSocket;
 pub use worker::Worker;
+
+pub use self::playwright::Playwright;
+pub use crate::imp::core::DateTime;
+pub use crate::imp::utils::*;
 
 // Artifact
 // BindingCall

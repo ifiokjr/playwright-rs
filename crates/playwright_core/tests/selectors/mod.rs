@@ -1,15 +1,16 @@
-use playwright_core::api::{Playwright, Selectors};
+use playwright_core::api::Playwright;
+use playwright_core::api::Selectors;
 
 use super::Which;
 
 pub async fn all(playwright: &Playwright, which: Which) {
-    let selectors = playwright.selectors();
+  let selectors = playwright.selectors();
 
-    register_should_work(playwright, &selectors, which).await;
+  register_should_work(playwright, &selectors, which).await;
 }
 
 async fn register_should_work(playwright: &Playwright, selectors: &Selectors, which: Which) {
-    let snip = "({
+  let snip = "({
         // Returns the first element matching given selector in the root's subtree.
         query(root, selector) {
           return root.querySelector(selector);
@@ -20,22 +21,24 @@ async fn register_should_work(playwright: &Playwright, selectors: &Selectors, wh
           return Array.from(root.querySelectorAll(selector));
         }
       })";
-    selectors.register("tag", snip, false).await.unwrap();
-    let t = match which {
-        Which::Webkit => playwright.webkit(),
-        Which::Firefox => playwright.firefox(),
-        Which::Chromium => playwright.chromium()
-    };
-    let browser = t.launcher().launch().await.unwrap();
-    let bc = browser.context_builder().build().await.unwrap();
-    let page = bc.new_page().await.unwrap();
-    page.set_content_builder("<div><button>Click me</button></div>")
-        .set_content()
-        .await
-        .unwrap();
-    let _button = page.query_selector("tag=button").await.unwrap().unwrap();
-    page.click_builder(r#"tag=div >> text="Click me""#)
-        .click()
-        .await
-        .unwrap();
+  selectors.register("tag", snip, false).await.unwrap();
+  let t = match which {
+    Which::Webkit => playwright.webkit(),
+    Which::Firefox => playwright.firefox(),
+    Which::Chromium => playwright.chromium(),
+  };
+  let browser = t.launcher().launch().await.unwrap();
+  let bc = browser.context_builder().build().await.unwrap();
+  let page = bc.new_page().await.unwrap();
+  page
+    .set_content_builder("<div><button>Click me</button></div>")
+    .set_content()
+    .await
+    .unwrap();
+  let _button = page.query_selector("tag=button").await.unwrap().unwrap();
+  page
+    .click_builder(r#"tag=div >> text="Click me""#)
+    .click()
+    .await
+    .unwrap();
 }

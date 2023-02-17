@@ -1,8 +1,10 @@
-use crate::imp::{
-    core::*, element_handle::ElementHandle as ElementHandleImpl, page::Page as PageImpl, prelude::*
-};
+use crate::imp::core::*;
+use crate::imp::element_handle::ElementHandle as ElementHandleImpl;
+use crate::imp::page::Page as PageImpl;
+use crate::imp::prelude::*;
 
-/// `FileChooser` objects are dispatched by the page in the [page::Event::FileChooser](crate::api::page::Event::FileChooser) event.
+/// `FileChooser` objects are dispatched by the page in the
+/// [page::Event::FileChooser](crate::api::page::Event::FileChooser) event.
 ///
 /// ```js
 /// const [fileChooser] = await Promise.all([
@@ -13,21 +15,21 @@ use crate::imp::{
 /// ```
 #[derive(Debug, Clone)]
 pub struct FileChooser {
-    pub(crate) page: Weak<PageImpl>,
-    pub(crate) element_handle: Weak<ElementHandleImpl>,
-    pub(crate) is_multiple: bool
+  pub(crate) page: Weak<PageImpl>,
+  pub(crate) element_handle: Weak<ElementHandleImpl>,
+  pub(crate) is_multiple: bool,
 }
 
 impl FileChooser {
-    pub(crate) fn new(
-        page: Weak<PageImpl>,
-        element_handle: Weak<ElementHandleImpl>,
-        is_multiple: bool
-    ) -> Self {
-        Self {
-            page,
-            element_handle,
-            is_multiple
-        }
+  pub(crate) fn new(
+    page: Weak<PageImpl>,
+    element_handle: Weak<ElementHandleImpl>,
+    is_multiple: bool,
+  ) -> Self {
+    Self {
+      page,
+      element_handle,
+      is_multiple,
     }
+  }
 }
